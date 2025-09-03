@@ -61,6 +61,10 @@
    hx-target="#form-container"
    hx-swap="outerHTML"
    hx-vals='{"accountNumber":"@account.AccountNumber"}'></i>
+   <i class="fa fa-trash text-danger"
+   onclick="confirmDelete('@account.AccountNumber', this)">
+</i>
+
                     </div>
     }
     }

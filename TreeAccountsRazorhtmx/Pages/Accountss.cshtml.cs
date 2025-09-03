@@ -246,6 +246,23 @@ namespace TreeAccountsRazorhtmx.Pages
                 return Partial("_SaveResultPartial", errorAlert);
             }
         }
+
+        public async Task<IActionResult> OnPostDeleteAccountAsync(string accountNumber)
+        {
+            if (string.IsNullOrEmpty(accountNumber))
+                return BadRequest();
+
+            // هنا تكتب منطق الحذف من قاعدة البيانات أو API
+            var account = allAccountsCache?.FirstOrDefault(a => a.AccountNumber == accountNumber);
+            if (account != null)
+            {
+                allAccountsCache?.Remove(account);
+            }
+
+            // نرجع Partial فاضي عشان htmx يحذف العنصر
+            return Content(string.Empty);
+        }
+
         #endregion
 
         #region Helpers partialView

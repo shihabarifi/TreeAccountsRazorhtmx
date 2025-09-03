@@ -404,4 +404,31 @@ function toggleNode(id, element) {
         ul.style.display = (ul.style.display === 'block') ? 'none' : 'block';
     }
 }
+function confirmDelete(accountNumber, element) {
+    Swal.fire({
+        title: 'هل أنت متأكد؟',
+        text: "سيتم حذف الحساب ولا يمكن التراجع!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'نعم، احذف!',
+        cancelButtonText: 'إلغاء'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // تنفيذ طلب HTMX للحذف
+            htmx.ajax('POST', '/Accountss?handler=DeleteAccount', {
+                target: element.closest('li'), // نحذف العنصر من DOM
+                swap: 'outerHTML',
+                values: { accountNumber: accountNumber }
+            }).then(() => {
+                Swal.fire(
+                    'تم الحذف!',
+                    'تم حذف الحساب بنجاح.',
+                    'success'
+                );
+            });
+        }
+    });
+}
 </script>
