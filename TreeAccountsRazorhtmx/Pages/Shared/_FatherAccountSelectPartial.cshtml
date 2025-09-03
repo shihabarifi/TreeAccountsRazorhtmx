@@ -1,0 +1,16 @@
+﻿@model TreeAccountsRazorhtmx.Models.FatherAccountSelectViewModel
+
+<select name="FatherNumber" id="FatherNumber" class="form-control" required
+        hx-get="/Accountss?handler=GetNewAccountNumber"
+        hx-target="#AccountNumber"
+        hx-swap="outerHTML"
+        hx-trigger="load, change"
+ hx-include="#AccountType">
+    @foreach (var account in Model.Accounts)
+    {
+        <option value="@account.AccountNumber" selected="@(Model.FatherNumber == account.AccountNumber ? "selected" : null)">
+            @account.AccountName
+        </option>
+    }
+   
+</select>

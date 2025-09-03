@@ -1,0 +1,69 @@
+﻿@model List<TreeAccountsRazorhtmx.Models.Account>
+
+@foreach (var account in Model)
+{
+    <li class="tree-node">
+    @if (account.HasChildren)
+    {
+        <div class="tree-header">
+            @* <!-- أيقونة الفولدر --> *@
+            <span class="toggle-folder"
+                  hx-get="/Accountss?handler=Children&fatherNumber=@account.AccountNumber"
+                  hx-target="#children-@account.ID"
+                  hx-swap="innerHTML"
+                  hx-trigger="click"
+                  onclick="toggleNode('@account.ID', this)">
+                <i class="fa fa-folder"></i>
+            </span>
+
+            @* <!-- اسم الحساب --> *@
+            <span class="account-name"
+                  hx-get="/Accountss?handler=FatherAccountSelect"
+                  hx-target="#FatherNumber"
+                  hx-swap="outerHTML"
+                  hx-vals='{"fatherNumber":"@account.AccountNumber"}'>
+                @account.AccountName (@account.AccountNumber)
+            </span>
+
+            <span id="indicator-@account.ID" class="htmx-indicator">
+                <i class="fa fa-spinner fa-spin"></i>
+            </span>
+        </div>
+
+        <ul id="children-@account.ID" class="children-list"></ul>
+    }
+    else
+    {
+         @if (account.AccountType=="رئيسي")
+         {
+        <div class="tree-header"
+             hx-get="/Accountss?handler=FatherAccountSelect"
+             hx-target="#FatherNumber"
+             hx-swap="outerHTML"
+             hx-vals='{"fatherNumber":"@account.AccountNumber"}'>
+            <span class="toggle-folder">
+                <i class="fa fa-file" style="color: #c9bb88;"></i>
+            </span>
+            <span class="account-name">@account.AccountName (@account.AccountNumber)</span>
+            
+        </div>  }
+    else
+    {
+           <div class="tree-header" >
+                        <span class="toggle-folder1">
+                            <i class="fa fa-file" ></i>
+                        </span>
+                        <span class="account-name">@account.AccountName (@account.AccountNumber)</span>
+                     
+                        @* <!-- أيقونة التعديل --> *@
+   <i class="fa fa-edit"
+   hx-get="/Accountss?handler=EditAccount"
+   hx-target="#form-container"
+   hx-swap="outerHTML"
+   hx-vals='{"accountNumber":"@account.AccountNumber"}'></i>
+                    </div>
+    }
+    }
+</li>
+
+}

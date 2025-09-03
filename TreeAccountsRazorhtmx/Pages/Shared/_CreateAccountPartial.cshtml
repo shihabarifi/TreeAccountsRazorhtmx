@@ -1,0 +1,76 @@
+﻿
+@model List<TreeAccountsRazorhtmx.Models.Account>
+<div id="form-container">
+    <div class="form-section card">
+        <h2>إضافة حساب جديد</h2>
+        <form  method="post" style="display: flex; flex-direction: column;"
+              hx-post="?handler=SaveAccount"
+              hx-target="#save-result" 
+              hx-swap="innerHTML">
+            
+            <div class="input-grid">
+                <div class="form-group">
+                    <label for="AccountName">اسم الحساب</label>
+                    <input type="text" id="AccountName" name="AccountName" required />
+                </div>
+                
+                <div class="form-group">
+                    <label>الحساب الأب *</label>
+                    <select name="FatherNumber" id="FatherNumber" class="form-control" required
+                            hx-get="/Accountss?handler=GetNewAccountNumber"
+                            hx-target="#AccountNumber"
+                            hx-swap="outerHTML"
+                            hx-trigger="change"
+                            hx-include="#AccountType">
+                        @foreach (var account in Model)
+                        {
+                            <option value="@account.AccountNumber">@account.AccountName (@account.AccountNumber)</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="AccountNumber">رقم الحساب</label>
+                    <input type="text" id="AccountNumber" name="AccountNumber" required />
+                </div>
+
+                <div class="form-group">
+                    <label for="AccountNameEng">الاسم الإنجليزي</label>
+                    <input type="text" id="AccountNameEng" name="AccountNameEng" />
+                </div>
+                
+                <div class="form-group">
+                    <label for="FinalAccount">الحساب الختامي</label>
+                    <select id="FinalAccount" name="FinalAccount">
+                        <option value="الارباح والخسائر">الارباح والخسائر</option>
+                        <option value="الميزانية العمومية">الميزانية العمومية</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="AccountType">نوع الحساب</label>
+                    <select id="AccountType" name="AccountType" required
+                          hx-get="/Accountss?handler=GetNewAccountNumber"
+                            hx-target="#AccountNumber"
+                            hx-swap="outerHTML"
+                            hx-trigger="change"
+                            hx-include="#FatherNumber">
+                        <option value="رئيسي">رئيسي</option>
+                        <option value="فرعي">فرعي</option>
+                    </select>
+                </div>
+            </div>
+            
+            <button type="submit" class="btn-save"> 
+                <span class="btn-text">💾 حفظ </span>
+            </button>
+            
+            <div class="save-overlay htmx-indicator" aria-hidden="true">
+                <div class="loader">
+                    <span></span><span></span><span></span><span></span>
+                </div>
+                <div class="save-text">جارٍ حفظ الحساب...</div>
+            </div>
+        </form>
+    </div>
+</div>

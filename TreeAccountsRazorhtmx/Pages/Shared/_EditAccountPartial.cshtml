@@ -1,0 +1,74 @@
+﻿@* @model TreeAccountsRazorhtmx.Models.Account *@
+@model Tuple<TreeAccountsRazorhtmx.Models.Account, List<TreeAccountsRazorhtmx.Models.Account>>
+@{
+    var accountToEdit = Model.Item1;
+    var fatherAccountList = Model.Item2;
+}
+<div id="form-container">
+    <div class="form-section card">
+         <div class="d-flex justify-content-between align-items-center mb-3">
+            <h2>تعديل حساب: @accountToEdit.AccountName</h2>
+ <button class="btn btn-secondary"
+        hx-get="/Accountss?handler=CreateAccountPartial"
+        hx-target="#form-container"
+        hx-swap="outerHTML">
+    <i class="fa fa-arrow-left"></i> العودة
+</button>
+        </div>
+    <form  method="post" style="display: flex; flex-direction: column;"
+          hx-post="?handler=UpdateAccount"
+          hx-target="#save-result"
+          hx-swap="innerHTML">
+
+        <div class="input-grid">
+            <input type="hidden" name="AccountNumber" value="@accountToEdit.AccountNumber" />
+
+            <div class="form-group">
+                <label for="AccountName">اسم الحساب</label>
+                <input type="text" id="AccountName" name="AccountName" value="@accountToEdit.AccountName" required />
+            </div>
+            
+            <div class="form-group">
+                <label>الحساب الأب *</label>
+                <select name="FatherNumber" id="FatherNumber" class="form-control" required>
+                    @* You might need a more complex way to load these options,
+                       maybe with lazy loading as discussed before.
+                       For now, assume you have a list in your model. *@
+                    @foreach (var account in fatherAccountList)
+                    {
+                        <option value="@account.AccountNumber" selected="@(account.AccountNumber == accountToEdit.FatherNumber)">
+                            @account.AccountName (@account.AccountNumber)
+                        </option>
+                    }
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="FinalAccount">الحساب الختامي</label>
+                <select id="FinalAccount" name="FinalAccount">
+                    <option value="الارباح والخسائر" selected="@(accountToEdit.AccountReference == "الارباح والخسائر" ? "selected" : null)" >الارباح والخسائر</option>
+                    <option value="الميزانية العمومية" selected="@(accountToEdit.AccountReference == "الميزانية العمومية" ? "selected" : null)" >الميزانية العمومية</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="AccountType">نوع الحساب</label>
+                <select id="AccountType" name="AccountType" required>
+                    <option value="رئيسي" selected="@(accountToEdit.AccountType == "رئيسي"? "selected" : null)">رئيسي</option>
+                    <option value="فرعي" selected="@(accountToEdit.AccountType == "فرعي"  ? "selected" : null)">فرعي</option>
+                </select>
+            </div>
+        </div>
+
+        <button type="submit" class="btn-save">
+            <span class="btn-text">💾 تحديث </span>
+        </button>
+           <div class="save-overlay htmx-indicator" aria-hidden="true">
+                <div class="loader">
+                    <span></span><span></span><span></span><span></span>
+                </div>
+                <div class="save-text">جارٍ تحديث الحساب...</div>
+            </div>
+    </form>
+</div>
+</div>

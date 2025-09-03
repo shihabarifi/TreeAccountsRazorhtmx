@@ -1,0 +1,139 @@
+﻿/* إظهار عناصر .htmx-indicator فقط أثناء الطلب */
+#save-invoice-form .htmx-indicator {
+    display: none;
+}
+
+#save-invoice-form.htmx-request .htmx-indicator {
+    display: flex;
+}
+
+/* تعطيل الزر أثناء الطلب مع لمسة شفافية */
+#save-invoice-form.htmx-request #save-btn {
+    pointer-events: none;
+    opacity: 0.85;
+}
+
+/* سبينر داخل الزر (ثلاث نقاط نابضة) */
+.btn-spinner {
+    margin-inline-start: .75rem;
+    align-items: center;
+    gap: .25rem;
+}
+
+    .btn-spinner::before,
+    .btn-spinner::after {
+        content: '';
+    }
+
+    .btn-spinner,
+    .btn-spinner::before,
+    .btn-spinner::after {
+        width: .45rem;
+        height: .45rem;
+        border-radius: 50%;
+        background: #fff;
+        animation: dotPulse 1s infinite ease-in-out;
+        display: inline-flex;
+    }
+
+        .btn-spinner::before {
+            animation-delay: .15s;
+            margin-inline-end: .25rem;
+        }
+
+        .btn-spinner::after {
+            animation-delay: .30s;
+            margin-inline-start: .25rem;
+        }
+
+@@keyframes dotPulse {
+    0%, 80%, 100% {
+        transform: scale(0.6);
+        opacity: .6;
+    }
+
+    40% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* أوفرلاي يغطي الفورم */
+#save-invoice-form {
+    position: relative;
+}
+
+.save-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(255,255,255,.65);
+    backdrop-filter: blur(2px);
+    z-index: 10;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: .75rem;
+}
+
+.save-text {
+    font-weight: 700;
+    color: #198754;
+    letter-spacing: .3px;
+}
+
+/* Loader أنيق (مربعات تدور) */
+.loader {
+    width: 64px;
+    height: 64px;
+    position: relative;
+    display: grid;
+    place-items: center;
+}
+
+    .loader span {
+        position: absolute;
+        width: 12px;
+        height: 12px;
+        background: #198754;
+        border-radius: 3px;
+        transform-origin: 32px 32px;
+        animation: squareOrbit 1.2s linear infinite;
+        box-shadow: 0 0 8px rgba(25,135,84,.5);
+    }
+
+        .loader span:nth-child(1) {
+            transform: rotate(0deg) translate(20px);
+            animation-delay: 0s;
+        }
+
+        .loader span:nth-child(2) {
+            transform: rotate(90deg) translate(20px);
+            animation-delay: .1s;
+        }
+
+        .loader span:nth-child(3) {
+            transform: rotate(180deg) translate(20px);
+            animation-delay: .2s;
+        }
+
+        .loader span:nth-child(4) {
+            transform: rotate(270deg) translate(20px);
+            animation-delay: .3s;
+        }
+
+@@keyframes squareOrbit {
+    0% {
+        transform: rotate(var(--r,0deg)) translate(20px) scale(1);
+        opacity: .9;
+    }
+
+    50% {
+        transform: rotate(calc(var(--r,0deg) + 180deg)) translate(20px) scale(.8);
+        opacity: .6;
+    }
+
+    100% {
+        transform: rotate(calc(var(--r,0deg) + 360deg)) translate(20px) scale(1);
+        opacity: .9;
+    }
+}

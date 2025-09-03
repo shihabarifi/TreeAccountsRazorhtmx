@@ -1,0 +1,407 @@
+﻿@page
+@model AccountssModel
+
+<style>
+    /* إظهار عناصر .htmx-indicator فقط أثناء الطلب */
+form .htmx-indicator {
+    display: none;
+}
+
+form.htmx-request .htmx-indicator {
+    display: flex;
+}
+
+form.htmx-request button[type="submit"] {
+    pointer-events: none;
+    opacity: 0.85;
+}
+
+
+    /* سبينر داخل الزر (ثلاث نقاط نابضة) */
+    .btn-spinner {
+        margin-inline-start: .75rem;
+        align-items: center;
+        gap: .25rem;
+    }
+
+        .btn-spinner::before,
+        .btn-spinner::after {
+            content: '';
+        }
+
+        .btn-spinner,
+        .btn-spinner::before,
+        .btn-spinner::after {
+            width: .45rem;
+            height: .45rem;
+            border-radius: 50%;
+            background: #fff;
+            animation: dotPulse 1s infinite ease-in-out;
+            display: inline-flex;
+        }
+
+            .btn-spinner::before {
+                animation-delay: .15s;
+                margin-inline-end: .25rem;
+            }
+
+            .btn-spinner::after {
+                animation-delay: .30s;
+                margin-inline-start: .25rem;
+            }
+
+    @@keyframes dotPulse {
+        0%, 80%, 100% {
+            transform: scale(0.6);
+            opacity: .6;
+        }
+
+        40% {
+            transform: scale(1);
+            opacity: 1;
+        }
+    }
+
+    /* أوفرلاي يغطي الفورم */
+    form {
+        position: relative;
+    }
+
+    .save-overlay {
+        position: absolute;
+        inset: 0;
+        background: rgba(255,255,255,.65);
+        backdrop-filter: blur(2px);
+        z-index: 10;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        gap: .75rem;
+    }
+
+    .save-text {
+        font-weight: 700;
+        color: #198754;
+        letter-spacing: .3px;
+        position: relative;
+        display: grid;
+        place-items: center;
+    }
+
+    /* Loader أنيق (مربعات تدور) */
+    .loader {
+        width: 90%;
+        height: 50%;
+        position: relative;
+        display: grid;
+        place-items: center;
+    }
+
+        .loader span {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background: #198754;
+            border-radius: 3px;
+            transform-origin: 32px 32px;
+            animation: squareOrbit 1.2s linear infinite;
+            box-shadow: 0 0 8px rgba(25,135,84,.5);
+        }
+
+            .loader span:nth-child(1) {
+                transform: rotate(0deg) translate(20px);
+                animation-delay: 0s;
+            }
+
+            .loader span:nth-child(2) {
+                transform: rotate(90deg) translate(20px);
+                animation-delay: .1s;
+            }
+
+            .loader span:nth-child(3) {
+                transform: rotate(180deg) translate(20px);
+                animation-delay: .2s;
+            }
+
+            .loader span:nth-child(4) {
+                transform: rotate(270deg) translate(20px);
+                animation-delay: .3s;
+            }
+
+    @@keyframes squareOrbit {
+        0% {
+            transform: rotate(var(--r,0deg)) translate(20px) scale(1);
+            opacity: .9;
+        }
+
+        50% {
+            transform: rotate(calc(var(--r,0deg) + 180deg)) translate(20px) scale(.8);
+            opacity: .6;
+        }
+
+        100% {
+            transform: rotate(calc(var(--r,0deg) + 360deg)) translate(20px) scale(1);
+            opacity: .9;
+        }
+    }
+
+/* ---------------------------------
+   1. التنسيقات العامة
+--------------------------------- */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f4f7f9;
+}
+
+.main-container {
+    display: flex;
+    gap: 20px;
+    padding: 20px;
+    flex-wrap: wrap; /* يسمح للعناصر بالانتقال إلى سطر جديد في الشاشات الصغيرة */
+}
+
+.card {
+    background-color: #ffffff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+h2 {
+    color: #343a40;
+    font-weight: 600;
+    border-bottom: 2px solid #28a745;
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+}
+
+/* ---------------------------------
+   2. تنسيقات حقول الإدخال (الجديدة)
+--------------------------------- */
+.form-section {
+    flex: 2;
+    min-width: 400px;
+}
+
+.input-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); /* يقسم الحقول إلى عمودين */
+    gap: 20px;
+}
+
+.full-width {
+    grid-column: 1 / -1; /* يجعل العنصر يمتد على كامل العرض */
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group label {
+    font-weight: 500;
+    color: #495057;
+    margin-bottom: 5px;
+}
+
+.form-group input,
+.form-group select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    transition: border-color 0.2s;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+    border-color: #28a745;
+    outline: none;
+    box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
+}
+
+.btn-save {
+    background-color: #28a745;
+    color: white;
+    padding: 12px 25px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+    transition: background-color 0.2s;
+    margin-top: 20px;
+    align-self: flex-end;
+}
+
+.btn-save:hover {
+    background-color: #218838;
+}
+
+/* ---------------------------------
+   3. تنسيقات الشجرة المحاسبية
+--------------------------------- */
+.tree-container {
+    flex: 1;
+    min-width: 350px;
+}
+
+ul {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+}
+
+.tree-node {
+    margin: 4px 0;
+}
+
+.tree-header {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    padding: 5px 8px;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+    user-select: none;
+}
+
+.tree-header:hover {
+    background-color: #e9ecef;
+}
+
+.toggle-folder {
+    width: 25px;
+    text-align: center;
+    color: #28a745;
+    transition: transform 0.2s ease-in-out;
+}
+.toggle-folder1 {
+    width: 25px;
+    text-align: center;
+    color: #70b8d7;
+    transition: transform 0.2s ease-in-out;
+}
+
+.account-name {
+    flex: 1;
+    font-weight: 500;
+}
+
+.children-list {
+    position: relative;
+    border-left: 1px dashed #ced4da;
+    margin-left: 12.5px;
+    padding-left: 15px;
+    display: none;
+}
+
+.tree-header.expanded ~ .children-list {
+    display: block;
+}
+
+.tree-header.expanded .toggle-folder i::before {
+    content: "\f07c";
+}
+
+.toggle-folder i::before {
+    content: "\f07b";
+}
+
+/* ---------------------------------
+   4. الأيقونات ومؤشر التحميل
+--------------------------------- */
+.htmx-indicator {
+    display: none;
+    color: #28a745;
+}
+
+.htmx-request .htmx-indicator {
+    display: inline-block;
+}
+.children-list {
+    display: none;
+    margin-left: 15px;
+    border-left: 1px dashed #ced4da;
+    padding-left: 12px;
+}
+
+.toggle-folder.expanded i::before {
+    content: "\f07c"; /* مفتوح */
+}
+
+.toggle-folder i::before {
+    content: "\f07b"; /* مغلق */
+}
+
+</style>
+
+<div class="main-container">
+    <div class="form-section card">
+     
+        <div id="form-container">
+        <partial name="_CreateAccountPartial" model="Model.FatherAccountList" />
+    </div>
+        <div id="save-result" class="mt-3"></div>
+    </div>
+
+    <div class="tree-container card">
+        <h2>شجرة الحسابات</h2>
+           <input type="text"
+           id="tree-search"
+           name="query"
+           placeholder="🔍 ابحث عن حساب..."
+           class="form-control mb-2"
+           hx-get="/Accountss?handler=Search"
+           hx-target="#tree-root"
+           hx-trigger="keyup changed delay:500ms"
+           hx-indicator="#search-indicator" />
+
+    <span id="search-indicator" class="htmx-indicator">
+        <i class="fa fa-spinner fa-spin"></i>
+    </span>
+
+    <ul id="tree-root">
+            @foreach (var account in Model.RootAccounts)
+            {
+                <li class="tree-node">
+                    @if (account.HasChildren)
+                    {
+                        <div class="tree-header"
+                             hx-get="/Accounts?handler=Children&fatherNumber=@account.AccountNumber"
+                             hx-target="#children-@account.ID"
+                             hx-swap="innerHTML"
+                             hx-indicator="#indicator-@account.ID"
+                             hx-on:click="this.classList.toggle('expanded')">
+                            <span class="toggle-folder"><i class="fa fa-folder"></i></span>
+                            <span class="account-name">@account.AccountName (@account.AccountNumber)</span>
+                            <span id="indicator-@account.ID" class="htmx-indicator">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </span>
+                        </div>
+                        <ul id="children-@account.ID" class="children-list"></ul>
+                    }
+                    else
+                    {
+                        <div class="tree-header">
+                            <span class="toggle-fill"><i class="fa fa-book"></i></span>
+                            <span class="account-name">@account.AccountName (@account.AccountNumber)</span>
+                        </div>
+                    }
+                </li>
+            }
+        </ul>
+    </div>
+</div>
+<script>
+function toggleNode(id, element) {
+    // تبديل class expanded على الأيقونة
+    element.classList.toggle('expanded');
+
+    // تبديل عرض الأبناء
+    const ul = document.getElementById('children-' + id);
+    if (ul) {
+        ul.style.display = (ul.style.display === 'block') ? 'none' : 'block';
+    }
+}
+</script>

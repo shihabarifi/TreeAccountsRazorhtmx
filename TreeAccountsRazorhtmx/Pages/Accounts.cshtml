@@ -1,0 +1,163 @@
+﻿@page
+@model AccountsModel
+
+<style>
+    <style>
+/* 1. التنسيقات العامة والخطوط */
+ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background-color: #f8f9fa; /* خلفية ناعمة */
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #495057;
+}
+
+/* 2. حاوية الشجرة */
+.tree-container {
+    background-color: #ffffff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+h2 {
+    color: #343a40;
+    border-bottom: 2px solid #28a745; /* خط أخضر تحت العنوان */
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+}
+
+/* 3. تنسيق العقدة */
+.tree-node {
+    margin: 4px 0;
+    position: relative;
+}
+
+.tree-header {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    padding: 5px 8px;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+    user-select: none;
+}
+
+.tree-header:hover {
+    background-color: #e9ecef;
+}
+
+.toggle-folder {
+    width: 25px;
+    text-align: center;
+    color: #28a745; /* أيقونة المجلد باللون الأخضر */
+    transition: transform 0.2s ease-in-out;
+}
+
+.account-name {
+    flex: 1;
+    font-weight: 500;
+}
+
+/* 4. خطوط الشجرة */
+.children-list {
+    position: relative;
+    border-left: 1px dashed #ced4da;
+    margin-left: 12.5px;
+    padding-left: 15px;
+    display: none; /* افتراضيًا مطوي */
+}
+
+/* 5. مؤشر التحميل (باللون الأخضر) */
+.htmx-indicator {
+    display: none;
+    margin-left: 10px;
+    color: #28a745; /* لون المؤشر أخضر */
+}
+
+.htmx-request .htmx-indicator {
+    display: inline-block;
+}
+
+/* 6. حالات الطي والتوسيع */
+/* أيقونة المجلد المفتوح عند التوسيع */
+.tree-header.expanded .toggle-folder i::before {
+    content: "\f07c"; /* أيقونة مجلد مفتوح */
+}
+
+/* إظهار قائمة الأبناء عندما تكون العقدة موسعة */
+.tree-header.expanded ~ .children-list {
+    display: block;
+}
+
+</style>
+
+
+<div class="tree-container">
+    <h2>Accounts Tree</h2>
+
+    <ul>
+        @foreach (var account in Model.RootAccounts)
+        {
+            <li class="tree-node">
+                @if (account.HasChildren)
+                {
+                    <div class="tree-header"
+                         hx-get="/Accounts?handler=Children&fatherNumber=@account.AccountNumber"
+                         hx-target="#children-@account.ID"
+                         hx-swap="innerHTML"
+                         hx-on:click="this.classList.toggle('expanded')"
+                         hx-indicator="#indicator-@account.ID">
+
+                        <span class="toggle-folder">
+                            <i class="fa fa-folder"></i>
+                        </span>
+
+                        <span class="account-name">@account.AccountName (@account.AccountNumber)</span>
+                    <span id="indicator-@account.ID" class="htmx-indicator">Loading...</span>
+           
+                    </div>
+
+                    <ul id="children-@account.ID" class="children-list"></ul>
+                }
+                else
+                {
+                    <div class="tree-header">
+                        <span class="toggle-folder">
+                            <i class="fa fa-file" style="color: brown;"></i>
+                        </span>
+                        <span class="account-name">@account.AccountName (@account.AccountNumber)</span>
+                    </div>
+                }
+            </li>
+        }
+    </ul>
+</div>
+
+<script>
+function toggleTree(el, childrenId) {
+    const icon = el.querySelector('.toggle-folder i');
+    const children = document.getElementById(childrenId);
+
+    // أول مرة HTMX سيجلب البيانات
+    if (!children.dataset.loaded) {
+        children.dataset.loaded = "true";
+        children.style.display = "block";
+        icon.classList.replace('fa-folder', 'fa-folder-open');
+        return;
+    }
+
+    // بعد التحميل: مجرد طي/فتح
+    if (children.style.display === "none") {
+        children.style.display = "block";
+        icon.classList.replace('fa-folder', 'fa-folder-open');
+    } else {
+        children.style.display = "none";
+        icon.classList.replace('fa-folder-open', 'fa-folder');
+    }
+}
+</script>
