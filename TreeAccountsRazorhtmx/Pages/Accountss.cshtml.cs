@@ -247,21 +247,43 @@ namespace TreeAccountsRazorhtmx.Pages
             }
         }
 
-        public async Task<IActionResult> OnPostDeleteAccountAsync(string accountNumber)
+        public async Task<IActionResult> OnGetDeleteAccount(string accountNumber)
         {
             if (string.IsNullOrEmpty(accountNumber))
-                return BadRequest();
+                return new JsonResult(new { success = false, message = "رقم الحساب غير صالح." });
 
-            // هنا تكتب منطق الحذف من قاعدة البيانات أو API
+            var client = _httpClientFactory.CreateClient("UrlApi");
+
             var account = allAccountsCache?.FirstOrDefault(a => a.AccountNumber == accountNumber);
-            if (account != null)
-            {
-                allAccountsCache?.Remove(account);
-            }
+            if (account == null)
+                return new JsonResult(new { success = false, message = "الحساب غير موجود في الكاش." });
 
-            // نرجع Partial فاضي عشان htmx يحذف العنصر
-            return Content(string.Empty);
+            try
+            {
+                var response = await client.DeleteAsync($"accounts/{accountNumber}");
+
+                if (response.IsSuccessStatusCode)
+                {
+                    allAccountsCache!.Remove(account);
+                    return new JsonResult(new { success = true, message = "تم حذف الحساب بنجاح." });
+                }
+                else
+                {
+                    return new JsonResult(new
+                    {
+                        success = false,
+                        message = $"فشل حذف الحساب (كود: {response.StatusCode})."
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                return new JsonResult(new { success = false, message = $"خطأ: {ex.Message}" });
+            }
         }
+
+
+
 
         #endregion
 

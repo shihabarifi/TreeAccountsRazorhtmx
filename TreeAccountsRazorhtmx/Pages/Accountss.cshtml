@@ -334,6 +334,13 @@ ul {
     content: "\f07b"; /* مغلق */
 }
 
+    .fade-out-red {
+        background-color: #f8d7da !important;
+        opacity: 0;
+        transition: opacity 0.6s ease, background-color 0.6s ease;
+    }
+
+
 </style>
 
 <div class="main-container">
@@ -403,32 +410,41 @@ function toggleNode(id, element) {
     if (ul) {
         ul.style.display = (ul.style.display === 'block') ? 'none' : 'block';
     }
-}
-function confirmDelete(accountNumber, element) {
-    Swal.fire({
-        title: 'هل أنت متأكد؟',
-        text: "سيتم حذف الحساب ولا يمكن التراجع!",
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#d33',
-        cancelButtonColor: '#3085d6',
-        confirmButtonText: 'نعم، احذف!',
-        cancelButtonText: 'إلغاء'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            // تنفيذ طلب HTMX للحذف
-            htmx.ajax('POST', '/Accountss?handler=DeleteAccount', {
-                target: element.closest('li'), // نحذف العنصر من DOM
-                swap: 'outerHTML',
-                values: { accountNumber: accountNumber }
-            }).then(() => {
-                Swal.fire(
-                    'تم الحذف!',
-                    'تم حذف الحساب بنجاح.',
-                    'success'
-                );
-            });
-        }
-    });
-}
+    } function confirmDelete(accountNumber, element) {
+        Swal.fire({
+            title: 'هل أنت متأكد؟',
+            text: "سيتم حذف الحساب ولا يمكن التراجع!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'نعم، احذف!',
+            cancelButtonText: 'إلغاء'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                fetch(`/Accountss?handler=DeleteAccount&accountNumber=${accountNumber}`, {
+                    method: 'GET'
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // ✅ نجاح → احذف li مع أنيميشن
+                            const li = element.closest('li');
+                            li.classList.add('fade-out-red');
+                            setTimeout(() => li.remove(), 1500);
+
+                            Swal.fire('تم الحذف!', data.message, 'success');
+                        } else {
+                            // ❌ فشل → أظهر الرسالة فقط
+                            Swal.fire('فشل الحذف!', data.message, 'error');
+                        }
+                    })
+                    .catch(() => {
+                        Swal.fire('خطأ!', 'تعذر الاتصال بالسيرفر.', 'error');
+                    });
+            }
+        });
+    }
+
+
 </script>
